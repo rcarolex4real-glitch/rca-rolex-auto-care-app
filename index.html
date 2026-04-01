@@ -1,0 +1,1899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RCA Rolex Auto Care - Professional Automobile Services</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #2c3e50;
+        }
+
+        .container-fluid {
+            width: 100%;
+        }
+
+        .blue-accent {
+            color: #0066cc;
+        }
+
+        .blue-bg {
+            background-color: #0066cc;
+        }
+
+        .blue-hover:hover {
+            background-color: #0052a3;
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .gradient-header {
+            background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+            color: white;
+        }
+
+        .brand-card {
+            transition: all 0.3s ease;
+        }
+
+        .brand-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 102, 204, 0.15);
+        }
+
+        .service-card {
+            transition: all 0.3s ease;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+            color: white;
+        }
+
+        .nav-active {
+            border-bottom: 3px solid #0066cc;
+            color: #0066cc;
+        }
+
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .chat-message-client {
+            background-color: #e3f2fd;
+            border-left: 4px solid #0066cc;
+        }
+
+        .chat-message-company {
+            background-color: #f5f5f5;
+            border-left: 4px solid #666;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #d32f2f;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-approved {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-completed {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        input, textarea, select {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+
+        button {
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #0066cc;
+            color: white;
+            padding: 10px 20px;
+        }
+
+        .btn-primary:hover {
+            background-color: #0052a3;
+        }
+
+        .btn-secondary {
+            background-color: #e9ecef;
+            color: #2c3e50;
+            padding: 10px 20px;
+        }
+
+        .btn-secondary:hover {
+            background-color: #dee2e6;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0066cc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        // ===== APP STATE & STORAGE =====
+        const appState = {
+            currentUser: null,
+            userType: null, // 'client' or 'company'
+            currentPage: 'landing',
+            appointments: [],
+            complaints: [],
+            feedback: [],
+            messages: [],
+            carBrands: ['Toyota', 'Honda', 'BMW', 'Mercedes-Benz', 'Ford', 'Chevrolet', 'Volkswagen', 'Audi', 'Tesla', 'Hyundai', 'Kia', 'Nissan', 'Mazda', 'Subaru'],
+            services: [
+                { id: 1, name: 'Oil Change', icon: 'fa-oil-can', description: 'Regular oil and filter replacement' },
+                { id: 2, name: 'Tire Service', icon: 'fa-ring', description: 'Tire rotation, balancing, and repair' },
+                { id: 3, name: 'Brake Service', icon: 'fa-car', description: 'Brake pads and disc inspection' },
+                { id: 4, name: 'Battery Service', icon: 'fa-battery-full', description: 'Battery testing and replacement' },
+                { id: 5, name: 'Engine Diagnostic', icon: 'fa-stethoscope', description: 'Complete engine diagnostics' },
+                { id: 6, name: 'Air Filter', icon: 'fa-wind', description: 'Air filter replacement' },
+                { id: 7, name: 'Transmission', icon: 'fa-gears', description: 'Transmission service and repair' },
+                { id: 8, name: 'AC Service', icon: 'fa-snowflake', description: 'Air conditioning repair and refill' },
+                { id: 9, name: 'Suspension', icon: 'fa-person-hiking', description: 'Suspension inspection and repair' },
+                { id: 10, name: 'Electrical', icon: 'fa-bolt', description: 'Electrical system repair' },
+                { id: 11, name: 'Washing', icon: 'fa-droplet', description: 'Car washing and detailing' },
+                { id: 12, name: 'Paint Job', icon: 'fa-paint-brush', description: 'Paint restoration and touch-up' }
+            ]
+        };
+
+        // Load from localStorage
+        function loadAppState() {
+            const saved = localStorage.getItem('rcaRolexAppState');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                Object.assign(appState, parsed);
+            }
+        }
+
+        // Save to localStorage
+        function saveAppState() {
+            localStorage.setItem('rcaRolexAppState', JSON.stringify({
+                currentUser: appState.currentUser,
+                userType: appState.userType,
+                appointments: appState.appointments,
+                complaints: appState.complaints,
+                feedback: appState.feedback,
+                messages: appState.messages
+            }));
+        }
+
+        // ===== UTILITY FUNCTIONS =====
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        function formatDate(date) {
+            return new Date(date).toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+
+        function formatDateTime(date) {
+            return new Date(date).toLocaleString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-semibold z-50 fade-in ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 
+                'bg-blue-500'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function navigateTo(page) {
+            appState.currentPage = page;
+            render();
+        }
+
+        // ===== AUTHENTICATION =====
+        function signup(email, password, name, userType) {
+            const existingUser = JSON.parse(localStorage.getItem('rcaRolexUsers') || '[]')
+                .find(u => u.email === email);
+            
+            if (existingUser) {
+                showNotification('Email already registered!', 'error');
+                return false;
+            }
+
+            const users = JSON.parse(localStorage.getItem('rcaRolexUsers') || '[]');
+            const newUser = { id: generateId(), email, password, name, userType, createdAt: new Date().toISOString() };
+            users.push(newUser);
+            localStorage.setItem('rcaRolexUsers', JSON.stringify(users));
+
+            appState.currentUser = newUser;
+            appState.userType = userType;
+            saveAppState();
+            showNotification('Account created successfully!');
+            navigateTo(userType === 'client' ? 'client-dashboard' : 'company-dashboard');
+            return true;
+        }
+
+        function login(email, password, userType) {
+            const users = JSON.parse(localStorage.getItem('rcaRolexUsers') || '[]');
+            const user = users.find(u => u.email === email && u.password === password && u.userType === userType);
+
+            if (!user) {
+                showNotification('Invalid credentials or wrong user type!', 'error');
+                return false;
+            }
+
+            appState.currentUser = user;
+            appState.userType = userType;
+            saveAppState();
+            showNotification('Logged in successfully!');
+            navigateTo(userType === 'client' ? 'client-dashboard' : 'company-dashboard');
+            return true;
+        }
+
+        function logout() {
+            appState.currentUser = null;
+            appState.userType = null;
+            saveAppState();
+            navigateTo('landing');
+        }
+
+        // ===== APPOINTMENT MANAGEMENT =====
+        function createAppointment(data) {
+            const appointment = {
+                id: generateId(),
+                clientId: appState.currentUser.id,
+                clientName: appState.currentUser.name,
+                clientEmail: appState.currentUser.email,
+                carBrand: data.carBrand,
+                serviceId: data.serviceId,
+                serviceName: appState.services.find(s => s.id == data.serviceId).name,
+                appointmentDate: data.appointmentDate,
+                description: data.description,
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+                completedAt: null,
+                feedbackGiven: false
+            };
+
+            appState.appointments.push(appointment);
+            saveAppState();
+
+            // Simulate email notification
+            sendEmailNotification(
+                'Rca rolex4real@gmail.com',
+                `New Appointment: ${appointment.serviceName}`,
+                `Client: ${appointment.clientName}\nEmail: ${appointment.clientEmail}\nCar: ${appointment.carBrand}\nDate: ${appointment.appointmentDate}\nDescription: ${appointment.description}`
+            );
+
+            showNotification('Appointment booked successfully!');
+            return appointment;
+        }
+
+        function updateAppointmentStatus(appointmentId, status) {
+            const appointment = appState.appointments.find(a => a.id === appointmentId);
+            if (appointment) {
+                appointment.status = status;
+                if (status === 'completed') {
+                    appointment.completedAt = new Date().toISOString();
+                }
+                saveAppState();
+                showNotification(`Appointment ${status}!`);
+            }
+        }
+
+        // ===== COMPLAINT MANAGEMENT =====
+        function createComplaint(data) {
+            const complaint = {
+                id: generateId(),
+                clientId: appState.currentUser.id,
+                clientName: appState.currentUser.name,
+                clientEmail: appState.currentUser.email,
+                subject: data.subject,
+                description: data.description,
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+                replies: []
+            };
+
+            appState.complaints.push(complaint);
+            saveAppState();
+
+            // Simulate email notification
+            sendEmailNotification(
+                'Rca rolex4real@gmail.com',
+                `New Complaint: ${complaint.subject}`,
+                `Client: ${complaint.clientName}\nEmail: ${complaint.clientEmail}\nDescription: ${complaint.description}`
+            );
+
+            showNotification('Complaint submitted successfully!');
+            return complaint;
+        }
+
+        function addComplaintReply(complaintId, message) {
+            const complaint = appState.complaints.find(c => c.id === complaintId);
+            if (complaint) {
+                const reply = {
+                    id: generateId(),
+                    sender: appState.currentUser.name,
+                    senderType: appState.userType,
+                    message,
+                    timestamp: new Date().toISOString()
+                };
+                complaint.replies.push(reply);
+                saveAppState();
+                showNotification('Reply sent!');
+            }
+        }
+
+        // ===== FEEDBACK MANAGEMENT =====
+        function submitFeedback(appointmentId, rating, comment) {
+            const appointment = appState.appointments.find(a => a.id === appointmentId);
+            if (appointment) {
+                appointment.feedbackGiven = true;
+
+                const feedback = {
+                    id: generateId(),
+                    appointmentId,
+                    clientId: appState.currentUser.id,
+                    clientName: appState.currentUser.name,
+                    serviceName: appointment.serviceName,
+                    rating,
+                    comment,
+                    createdAt: new Date().toISOString()
+                };
+
+                appState.feedback.push(feedback);
+                saveAppState();
+                showNotification('Thank you for your feedback!');
+                return feedback;
+            }
+        }
+
+        // ===== MESSAGING SYSTEM =====
+        function sendMessage(recipientId, message) {
+            const msg = {
+                id: generateId(),
+                senderId: appState.currentUser.id,
+                senderName: appState.currentUser.name,
+                senderType: appState.userType,
+                recipientId,
+                message,
+                timestamp: new Date().toISOString(),
+                read: false
+            };
+
+            appState.messages.push(msg);
+            saveAppState();
+            showNotification('Message sent!');
+            return msg;
+        }
+
+        function getConversation(recipientId) {
+            return appState.messages.filter(m => 
+                (m.senderId === appState.currentUser.id && m.recipientId === recipientId) ||
+                (m.senderId === recipientId && m.recipientId === appState.currentUser.id)
+            ).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        }
+
+        // ===== EMAIL SIMULATION =====
+        function sendEmailNotification(to, subject, body) {
+            const notification = {
+                id: generateId(),
+                to,
+                subject,
+                body,
+                sentAt: new Date().toISOString()
+            };
+            const notifications = JSON.parse(localStorage.getItem('rcaRolexEmailNotifications') || '[]');
+            notifications.push(notification);
+            localStorage.setItem('rcaRolexEmailNotifications', JSON.stringify(notifications));
+        }
+
+        // ===== RENDER FUNCTIONS =====
+        function renderLandingPage() {
+            return `
+                <div class="min-h-screen flex flex-col">
+                    <!-- Header -->
+                    <header class="gradient-header py-6 px-4">
+                        <div class="max-w-6xl mx-auto">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-car text-3xl"></i>
+                                    <div>
+                                        <h1 class="text-3xl font-bold">RCA Rolex Auto Care</h1>
+                                        <p class="text-sm opacity-90">Professional Automobile Services</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <button onclick="showModal('loginModal')" class="bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100">Login</button>
+                                    <button onclick="showModal('signupModal')" class="bg-green-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-600">Sign Up</button>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    <!-- Hero Section -->
+                    <section class="flex-1 bg-gradient-to-br from-blue-50 to-slate-100 py-16 px-4">
+                        <div class="max-w-6xl mx-auto text-center">
+                            <h2 class="text-5xl font-bold mb-4 text-gray-800">Professional Auto Care Services</h2>
+                            <p class="text-xl text-gray-600 mb-8">Expert mechanics, reliable service, guaranteed satisfaction</p>
+                            <div class="flex justify-center gap-4">
+                                <button onclick="showModal('signupModal')" class="btn-primary text-lg px-8 py-3">Get Started</button>
+                                <a href="https://wa.me/09084751583" target="_blank" class="btn-secondary text-lg px-8 py-3 flex items-center gap-2">
+                                    <i class="fab fa-whatsapp"></i> WhatsApp Us
+                                </a>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Services Preview -->
+                    <section class="py-16 px-4 bg-white">
+                        <div class="max-w-6xl mx-auto">
+                            <h3 class="text-3xl font-bold mb-12 text-center">Our Services</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                ${appState.services.slice(0, 8).map(service => `
+                                    <div class="service-card p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
+                                        <i class="fas ${service.icon} text-3xl blue-accent mb-3"></i>
+                                        <h4 class="font-bold text-lg mb-2">${service.name}</h4>
+                                        <p class="text-sm text-gray-600">${service.description}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Contact Section -->
+                    <section class="py-16 px-4 bg-gray-100">
+                        <div class="max-w-6xl mx-auto text-center">
+                            <h3 class="text-3xl font-bold mb-8">Get In Touch</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="bg-white p-8 rounded-lg card-shadow">
+                                    <i class="fab fa-whatsapp text-4xl blue-accent mb-4"></i>
+                                    <h4 class="font-bold mb-2">WhatsApp</h4>
+                                    <a href="https://wa.me/09084751583" class="blue-accent hover:underline">09084751583</a>
+                                </div>
+                                <div class="bg-white p-8 rounded-lg card-shadow">
+                                    <i class="fas fa-envelope text-4xl blue-accent mb-4"></i>
+                                    <h4 class="font-bold mb-2">Email</h4>
+                                    <a href="mailto:Rca rolex4real@gmail.com" class="blue-accent hover:underline">Rca rolex4real@gmail.com</a>
+                                </div>
+                                <div class="bg-white p-8 rounded-lg card-shadow">
+                                    <i class="fas fa-map-marker-alt text-4xl blue-accent mb-4"></i>
+                                    <h4 class="font-bold mb-2">Available 24/7</h4>
+                                    <p class="text-gray-600">Professional service anytime</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Footer -->
+                    <footer class="gradient-header py-8 px-4 text-center">
+                        <div class="max-w-6xl mx-auto">
+                            <p class="opacity-90">&copy; 2024 RCA Rolex Auto Care. All rights reserved.</p>
+                        </div>
+                    </footer>
+                </div>
+
+                <!-- Login Modal -->
+                <div id="loginModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center">
+                    <div class="modal-backdrop absolute inset-0"></div>
+                    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 relative z-10 card-shadow fade-in">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-2xl font-bold">Login</h3>
+                            <button onclick="closeModal('loginModal')" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block font-semibold mb-2">Login As</label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center">
+                                    <input type="radio" name="loginType" value="client" checked class="mr-2">
+                                    <span>Client</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="loginType" value="company" class="mr-2">
+                                    <span>Company/Mechanic</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block font-semibold mb-2">Email</label>
+                            <input type="email" id="loginEmail" placeholder="your@email.com" class="w-full">
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block font-semibold mb-2">Password</label>
+                            <input type="password" id="loginPassword" placeholder="••••••••" class="w-full">
+                        </div>
+
+                        <button onclick="handleLogin()" class="btn-primary w-full mb-2">Login</button>
+                        <button onclick="closeModal('loginModal'); showModal('signupModal')" class="btn-secondary w-full">Don't have account? Sign Up</button>
+                    </div>
+                </div>
+
+                <!-- Signup Modal -->
+                <div id="signupModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center">
+                    <div class="modal-backdrop absolute inset-0"></div>
+                    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 relative z-10 card-shadow fade-in">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-2xl font-bold">Sign Up</h3>
+                            <button onclick="closeModal('signupModal')" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block font-semibold mb-2">Register As</label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center">
+                                    <input type="radio" name="signupType" value="client" checked class="mr-2">
+                                    <span>Client</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="signupType" value="company" class="mr-2">
+                                    <span>Company/Mechanic</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block font-semibold mb-2">Full Name</label>
+                            <input type="text" id="signupName" placeholder="John Doe" class="w-full">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block font-semibold mb-2">Email</label>
+                            <input type="email" id="signupEmail" placeholder="your@email.com" class="w-full">
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block font-semibold mb-2">Password</label>
+                            <input type="password" id="signupPassword" placeholder="••••••••" class="w-full">
+                        </div>
+
+                        <button onclick="handleSignup()" class="btn-primary w-full mb-2">Sign Up</button>
+                        <button onclick="closeModal('signupModal'); showModal('loginModal')" class="btn-secondary w-full">Already have account? Login</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderClientDashboard() {
+            const unreadMessages = appState.messages.filter(m => m.recipientId === appState.currentUser.id && !m.read).length;
+            const pendingAppointments = appState.appointments.filter(a => a.clientId === appState.currentUser.id && a.status === 'pending').length;
+            const pendingComplaints = appState.complaints.filter(c => c.clientId === appState.currentUser.id && c.status === 'pending').length;
+
+            return `
+                <div class="min-h-screen bg-gray-50">
+                    <!-- Header -->
+                    <header class="gradient-header py-4 px-4 sticky top-0 z-40">
+                        <div class="max-w-6xl mx-auto flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-car text-2xl text-white"></i>
+                                <div>
+                                    <h1 class="text-2xl font-bold text-white">RCA Rolex</h1>
+                                    <p class="text-xs opacity-90">Client Dashboard</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-6">
+                                <div class="relative">
+                                    <button onclick="navigateTo('client-messages')" class="text-white text-xl relative">
+                                        <i class="fas fa-envelope"></i>
+                                        ${unreadMessages > 0 ? `<span class="notification-badge">${unreadMessages}</span>` : ''}
+                                    </button>
+                                </div>
+                                <div class="text-white">
+                                    <p class="text-sm">Welcome, ${appState.currentUser.name}</p>
+                                </div>
+                                <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <!-- Navigation Tabs -->
+                    <div class="bg-white border-b sticky top-16 z-30">
+                        <div class="max-w-6xl mx-auto flex">
+                            <button onclick="navigateTo('client-dashboard')" class="flex-1 py-4 text-center font-semibold nav-active border-blue-600 border-b-2">
+                                <i class="fas fa-home mr-2"></i> Home
+                            </button>
+                            <button onclick="navigateTo('client-appointments')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-calendar-check mr-2"></i> Appointments
+                            </button>
+                            <button onclick="navigateTo('client-complaints')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-exclamation-circle mr-2"></i> Complaints
+                            </button>
+                            <button onclick="navigateTo('client-feedback')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-star mr-2"></i> Feedback
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Main Content -->
+                    <div class="max-w-6xl mx-auto py-8 px-4">
+                        <!-- Quick Actions -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                            <div class="bg-white p-6 rounded-lg card-shadow">
+                                <i class="fas fa-calendar text-3xl blue-accent mb-2"></i>
+                                <h3 class="text-2xl font-bold">${pendingAppointments}</h3>
+                                <p class="text-gray-600">Pending Appointments</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg card-shadow">
+                                <i class="fas fa-exclamation text-3xl text-red-500 mb-2"></i>
+                                <h3 class="text-2xl font-bold">${pendingComplaints}</h3>
+                                <p class="text-gray-600">Active Complaints</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg card-shadow">
+                                <i class="fas fa-envelope text-3xl text-green-500 mb-2"></i>
+                                <h3 class="text-2xl font-bold">${unreadMessages}</h3>
+                                <p class="text-gray-600">New Messages</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg card-shadow">
+                                <i class="fas fa-star text-3xl text-yellow-500 mb-2"></i>
+                                <h3 class="text-2xl font-bold">${appState.feedback.filter(f => f.clientId === appState.currentUser.id).length}</h3>
+                                <p class="text-gray-600">Feedbacks Submitted</p>
+                            </div>
+                        </div>
+
+                        <!-- Services Grid -->
+                        <h2 class="text-3xl font-bold mb-6">Our Services</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            ${appState.services.map(service => `
+                                <div class="service-card p-6 bg-white rounded-lg">
+                                    <i class="fas ${service.icon} text-3xl blue-accent mb-3"></i>
+                                    <h4 class="font-bold text-lg mb-2">${service.name}</h4>
+                                    <p class="text-sm text-gray-600 mb-4">${service.description}</p>
+                                    <button onclick="showBookingModal(${service.id})" class="btn-primary w-full text-sm">Book Service</button>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Contact Section -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white p-8 rounded-lg card-shadow text-center">
+                                <i class="fab fa-whatsapp text-5xl blue-accent mb-4"></i>
+                                <h3 class="text-2xl font-bold mb-2">WhatsApp Support</h3>
+                                <p class="text-gray-600 mb-4">Quick chat with our team</p>
+                                <a href="https://wa.me/09084751583" target="_blank" class="btn-primary inline-block">
+                                    <i class="fab fa-whatsapp mr-2"></i> Message Now
+                                </a>
+                            </div>
+                            <div class="bg-white p-8 rounded-lg card-shadow text-center">
+                                <i class="fas fa-envelope text-5xl blue-accent mb-4"></i>
+                                <h3 class="text-2xl font-bold mb-2">Email Support</h3>
+                                <p class="text-gray-600 mb-4">Send us your concerns</p>
+                                <a href="mailto:Rca rolex4real@gmail.com" class="btn-primary inline-block">
+                                    <i class="fas fa-envelope mr-2"></i> Send Email
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking Modal -->
+                <div id="bookingModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center">
+                    <div class="modal-backdrop absolute inset-0"></div>
+                    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 relative z-10 card-shadow fade-in max-h-96 overflow-y-auto">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-2xl font-bold">Book Appointment</h3>
+                            <button onclick="closeModal('bookingModal')" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block font-semibold mb-2">Car Brand</label>
+                            <select id="bookingBrand" class="w-full">
+                                <option value="">Select car brand...</option>
+                                ${appState.carBrands.map(brand => `<option value="${brand}">${brand}</option>`).join('')}
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block font-semibold mb-2">Service</label>
+                            <select id="bookingService" class="w-full">
+                                <option value="">Select service...</option>
+                                ${appState.services.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block font-semibold mb-2">Appointment Date & Time</label>
+                            <input type="datetime-local" id="bookingDate" class="w-full">
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block font-semibold mb-2">Description (Optional)</label>
+                            <textarea id="bookingDescription" placeholder="Describe your car issue..." class="w-full" rows="3"></textarea>
+                        </div>
+
+                        <button onclick="handleBooking()" class="btn-primary w-full">Book Appointment</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderClientAppointments() {
+            const appointments = appState.appointments.filter(a => a.clientId === appState.currentUser.id);
+
+            return `
+                <div class="min-h-screen bg-gray-50">
+                    <header class="gradient-header py-4 px-4 sticky top-0 z-40">
+                        <div class="max-w-6xl mx-auto flex justify-between items-center">
+                            <h1 class="text-2xl font-bold text-white">My Appointments</h1>
+                            <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button>
+                        </div>
+                    </header>
+
+                    <div class="bg-white border-b sticky top-16 z-30">
+                        <div class="max-w-6xl mx-auto flex">
+                            <button onclick="navigateTo('client-dashboard')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-home mr-2"></i> Home
+                            </button>
+                            <button onclick="navigateTo('client-appointments')" class="flex-1 py-4 text-center font-semibold nav-active border-blue-600 border-b-2">
+                                <i class="fas fa-calendar-check mr-2"></i> Appointments
+                            </button>
+                            <button onclick="navigateTo('client-complaints')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-exclamation-circle mr-2"></i> Complaints
+                            </button>
+                            <button onclick="navigateTo('client-feedback')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-star mr-2"></i> Feedback
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="max-w-6xl mx-auto py-8 px-4">
+                        <button onclick="showModal('bookingModal')" class="btn-primary mb-6">
+                            <i class="fas fa-plus mr-2"></i> New Appointment
+                        </button>
+
+                        ${appointments.length === 0 ? `
+                            <div class="bg-white p-12 rounded-lg text-center card-shadow">
+                                <i class="fas fa-calendar text-5xl text-gray-300 mb-4"></i>
+                                <p class="text-xl text-gray-500">No appointments yet</p>
+                            </div>
+                        ` : `
+                            <div class="space-y-4">
+                                ${appointments.map(apt => `
+                                    <div class="bg-white p-6 rounded-lg card-shadow">
+                                        <div class="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h3 class="text-xl font-bold">${apt.serviceName}</h3>
+                                                <p class="text-gray-600">${apt.carBrand}</p>
+                                            </div>
+                                            <span class="status-badge status-${apt.status}">${apt.status.toUpperCase()}</span>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+                                            <div>
+                                                <span class="text-gray-600">Date:</span>
+                                                <p class="font-semibold">${formatDate(apt.appointmentDate)}</p>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-600">Booked:</span>
+                                                <p class="font-semibold">${formatDate(apt.createdAt)}</p>
+                                            </div>
+                                        </div>
+                                        ${apt.description ? `<p class="text-gray-600 mb-4">${apt.description}</p>` : ''}
+                                        <div class="flex gap-2">
+                                            <button onclick="startChat('${apt.clientId}')" class="btn-primary flex-1 text-sm">
+                                                <i class="fas fa-comment mr-2"></i> Chat with Company
+                                            </button>
+                                            ${apt.status === 'completed' && !apt.feedbackGiven ? `
+                                                <button onclick="showFeedbackModal('${apt.id}')" class="btn-secondary flex-1 text-sm">
+                                                    <i class="fas fa-star mr-2"></i> Leave Feedback
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+                </div>
+
+                <!-- Feedback Modal -->
+                <div id="feedbackModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center">
+                    <div class="modal-backdrop absolute inset-0"></div>
+                    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 relative z-10 card-shadow fade-in">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-2xl font-bold">Leave Feedback</h3>
+                            <button onclick="closeModal('feedbackModal')" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block font-semibold mb-3">Rate Service</label>
+                            <div class="flex gap-2 text-3xl" id="ratingStars">
+                                ${[1,2,3,4,5].map(i => `<button onclick="setRating(${i})" class="text-gray-300 cursor-pointer hover:text-yellow-400" data-rating="${i}">★</button>`).join('')}
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block font-semibold mb-2">Comments</label>
+                            <textarea id="feedbackComment" placeholder="Share your experience..." class="w-full" rows="4"></textarea>
+                        </div>
+
+                        <button onclick="handleFeedback()" class="btn-primary w-full">Submit Feedback</button>
+                    </div>
+                </div>
+
+                <!-- Booking Modal -->
+                <div id="bookingModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center">
+                    <div class="modal-backdrop absolute inset-0"></div>
+                    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 relative z-10 card-shadow fade-in max-h-96 overflow-y-auto">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-2xl font-bold">Book Appointment</h3>
+                            <button onclick="closeModal('bookingModal')" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block font-semibold mb-2">Car Brand</label>
+                            <select id="bookingBrand" class="w-full">
+                                <option value="">Select car brand...</option>
+                                ${appState.carBrands.map(brand => `<option value="${brand}">${brand}</option>`).join('')}
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block font-semibold mb-2">Service</label>
+                            <select id="bookingService" class="w-full">
+                                <option value="">Select service...</option>
+                                ${appState.services.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block font-semibold mb-2">Appointment Date & Time</label>
+                            <input type="datetime-local" id="bookingDate" class="w-full">
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block font-semibold mb-2">Description (Optional)</label>
+                            <textarea id="bookingDescription" placeholder="Describe your car issue..." class="w-full" rows="3"></textarea>
+                        </div>
+
+                        <button onclick="handleBooking()" class="btn-primary w-full">Book Appointment</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderClientComplaints() {
+            const complaints = appState.complaints.filter(c => c.clientId === appState.currentUser.id);
+
+            return `
+                <div class="min-h-screen bg-gray-50">
+                    <header class="gradient-header py-4 px-4 sticky top-0 z-40">
+                        <div class="max-w-6xl mx-auto flex justify-between items-center">
+                            <h1 class="text-2xl font-bold text-white">My Complaints</h1>
+                            <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button>
+                        </div>
+                    </header>
+
+                    <div class="bg-white border-b sticky top-16 z-30">
+                        <div class="max-w-6xl mx-auto flex">
+                            <button onclick="navigateTo('client-dashboard')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-home mr-2"></i> Home
+                            </button>
+                            <button onclick="navigateTo('client-appointments')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-calendar-check mr-2"></i> Appointments
+                            </button>
+                            <button onclick="navigateTo('client-complaints')" class="flex-1 py-4 text-center font-semibold nav-active border-blue-600 border-b-2">
+                                <i class="fas fa-exclamation-circle mr-2"></i> Complaints
+                            </button>
+                            <button onclick="navigateTo('client-feedback')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-star mr-2"></i> Feedback
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="max-w-6xl mx-auto py-8 px-4">
+                        <button onclick="showModal('complaintModal')" class="btn-primary mb-6">
+                            <i class="fas fa-plus mr-2"></i> New Complaint
+                        </button>
+
+                        ${complaints.length === 0 ? `
+                            <div class="bg-white p-12 rounded-lg text-center card-shadow">
+                                <i class="fas fa-exclamation-circle text-5xl text-gray-300 mb-4"></i>
+                                <p class="text-xl text-gray-500">No complaints yet</p>
+                            </div>
+                        ` : `
+                            <div class="space-y-4">
+                                ${complaints.map(complaint => `
+                                    <div class="bg-white p-6 rounded-lg card-shadow">
+                                        <div class="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h3 class="text-xl font-bold">${complaint.subject}</h3>
+                                                <p class="text-gray-600 text-sm">${formatDateTime(complaint.createdAt)}</p>
+                                            </div>
+                                            <span class="status-badge status-${complaint.status}">${complaint.status.toUpperCase()}</span>
+                                        </div>
+                                        <p class="text-gray-700 mb-4">${complaint.description}</p>
+                                        <div class="bg-gray-50 p-4 rounded mb-4 max-h-32 overflow-y-auto">
+                                            ${complaint.replies.length === 0 ? `
+                                                <p class="text-gray-500 text-sm">No replies yet</p>
+                                            ` : `
+                                                <div class="space-y-2">
+                                                    ${complaint.replies.map(reply => `
+                                                        <div class="chat-message-${reply.senderType}">
+                                                            <p class="text-xs font-semibold">${reply.sender}</p>
+                                                            <p class="text-sm">${reply.message}</p>
+                                                            <p class="text-xs text-gray-500">${formatDateTime(reply.timestamp)}</p>
+                                                        </div>
+                                                    `).join('')}
+                                                </div>
+                                            `}
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <input type="text" id="reply-${complaint.id}" placeholder="Type your reply..." class="flex-1">
+                                            <button onclick="addReply('${complaint.id}')" class="btn-primary">Send</button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+                </div>
+
+                <!-- Complaint Modal -->
+                <div id="complaintModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center">
+                    <div class="modal-backdrop absolute inset-0"></div>
+                    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 relative z-10 card-shadow fade-in">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-2xl font-bold">File Complaint</h3>
+                            <button onclick="closeModal('complaintModal')" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block font-semibold mb-2">Subject</label>
+                            <input type="text" id="complaintSubject" placeholder="Brief subject..." class="w-full">
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block font-semibold mb-2">Description</label>
+                            <textarea id="complaintDescription" placeholder="Describe your complaint..." class="w-full" rows="4"></textarea>
+                        </div>
+
+                        <button onclick="handleComplaint()" class="btn-primary w-full">Submit Complaint</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderClientFeedback() {
+            const userFeedback = appState.feedback.filter(f => f.clientId === appState.currentUser.id);
+
+            return `
+                <div class="min-h-screen bg-gray-50">
+                    <header class="gradient-header py-4 px-4 sticky top-0 z-40">
+                        <div class="max-w-6xl mx-auto flex justify-between items-center">
+                            <h1 class="text-2xl font-bold text-white">My Feedbacks</h1>
+                            <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button>
+                        </div>
+                    </header>
+
+                    <div class="bg-white border-b sticky top-16 z-30">
+                        <div class="max-w-6xl mx-auto flex">
+                            <button onclick="navigateTo('client-dashboard')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-home mr-2"></i> Home
+                            </button>
+                            <button onclick="navigateTo('client-appointments')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-calendar-check mr-2"></i> Appointments
+                            </button>
+                            <button onclick="navigateTo('client-complaints')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-exclamation-circle mr-2"></i> Complaints
+                            </button>
+                            <button onclick="navigateTo('client-feedback')" class="flex-1 py-4 text-center font-semibold nav-active border-blue-600 border-b-2">
+                                <i class="fas fa-star mr-2"></i> Feedback
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="max-w-6xl mx-auto py-8 px-4">
+                        ${userFeedback.length === 0 ? `
+                            <div class="bg-white p-12 rounded-lg text-center card-shadow">
+                                <i class="fas fa-star text-5xl text-gray-300 mb-4"></i>
+                                <p class="text-xl text-gray-500">No feedbacks submitted yet</p>
+                            </div>
+                        ` : `
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                ${userFeedback.map(fb => `
+                                    <div class="bg-white p-6 rounded-lg card-shadow">
+                                        <div class="flex items-start justify-between mb-4">
+                                            <div>
+                                                <h3 class="text-lg font-bold">${fb.serviceName}</h3>
+                                                <p class="text-gray-600 text-sm">${formatDate(fb.createdAt)}</p>
+                                            </div>
+                                            <div class="text-yellow-400 text-2xl">
+                                                ${'★'.repeat(fb.rating)}<span class="text-gray-300">${'★'.repeat(5-fb.rating)}</span>
+                                            </div>
+                                        </div>
+                                        <p class="text-gray-700">${fb.comment}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderClientMessages() {
+            const conversations = {};
+            appState.messages.forEach(msg => {
+                const otherPersonId = msg.senderId === appState.currentUser.id ? msg.recipientId : msg.senderId;
+                if (!conversations[otherPersonId]) {
+                    conversations[otherPersonId] = { lastMessage: msg, count: 0 };
+                }
+                conversations[otherPersonId].count += msg.recipientId === appState.currentUser.id && !msg.read ? 1 : 0;
+                if (new Date(msg.timestamp) > new Date(conversations[otherPersonId].lastMessage.timestamp)) {
+                    conversations[otherPersonId].lastMessage = msg;
+                }
+            });
+
+            const selectedConversation = localStorage.getItem('selectedConversation');
+
+            if (selectedConversation) {
+                const messages = getConversation(selectedConversation);
+                return `
+                    <div class="min-h-screen bg-gray-50 flex flex-col">
+                        <header class="gradient-header py-4 px-4 sticky top-0 z-40">
+                            <div class="max-w-6xl mx-auto flex justify-between items-center">
+                                <button onclick="localStorage.removeItem('selectedConversation'); navigateTo('client-messages')" class="text-white text-xl">
+                                    <i class="fas fa-arrow-left mr-2"></i> Back
+                                </button>
+                                <h1 class="text-2xl font-bold text-white">RCA Rolex Support</h1>
+                                <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button>
+                            </div>
+                        </header>
+
+                        <div class="flex-1 max-w-6xl w-full mx-auto px-4 py-8 overflow-y-auto">
+                            ${messages.length === 0 ? `
+                                <p class="text-gray-500 text-center">No messages yet. Start the conversation!</p>
+                            ` : `
+                                <div class="space-y-4">
+                                    ${messages.map(msg => `
+                                        <div class="chat-message-${msg.senderType} p-4 rounded-lg">
+                                            <p class="text-xs font-semibold mb-1">${msg.senderName}</p>
+                                            <p>${msg.message}</p>
+                                            <p class="text-xs text-gray-500 mt-1">${formatDateTime(msg.timestamp)}</p>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `}
+                        </div>
+
+                        <div class="bg-white border-t px-4 py-4 sticky bottom-0">
+                            <div class="max-w-6xl mx-auto flex gap-2">
+                                <input type="text" id="messageInput" placeholder="Type your message..." class="flex-1">
+                                <button onclick="sendClientMessage('${selectedConversation}')" class="btn-primary">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="min-h-screen bg-gray-50">
+                    <header class="gradient-header py-4 px-4 sticky top-0 z-40">
+                        <div class="max-w-6xl mx-auto flex justify-between items-center">
+                            <h1 class="text-2xl font-bold text-white">Messages</h1>
+                            <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button>
+                        </div>
+                    </header>
+
+                    <div class="max-w-6xl mx-auto py-8 px-4">
+                        ${Object.keys(conversations).length === 0 ? `
+                            <div class="bg-white p-12 rounded-lg text-center card-shadow">
+                                <i class="fas fa-envelope text-5xl text-gray-300 mb-4"></i>
+                                <p class="text-xl text-gray-500">No conversations yet</p>
+                            </div>
+                        ` : `
+                            <div class="space-y-2">
+                                ${Object.entries(conversations).map(([personId, data]) => `
+                                    <button onclick="localStorage.setItem('selectedConversation', '${personId}'); navigateTo('client-messages')" class="w-full bg-white p-4 rounded-lg text-left hover:bg-gray-50 card-shadow flex justify-between items-center">
+                                        <div class="flex-1">
+                                            <p class="font-semibold">RCA Rolex Support</p>
+                                            <p class="text-gray-600 text-sm">${data.lastMessage.message.substring(0, 50)}...</p>
+                                        </div>
+                                        ${data.count > 0 ? `<span class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">${data.count}</span>` : ''}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCompanyDashboard() {
+            const pendingAppointments = appState.appointments.filter(a => a.status === 'pending').length;
+            const pendingComplaints = appState.complaints.filter(c => c.status === 'pending').length;
+            const completedJobs = appState.appointments.filter(a => a.status === 'completed').length;
+
+            return `
+                <div class="min-h-screen bg-gray-50">
+                    <header class="gradient-header py-4 px-4 sticky top-0 z-40">
+                        <div class="max-w-6xl mx-auto flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-tools text-2xl text-white"></i>
+                                <div>
+                                    <h1 class="text-2xl font-bold text-white">RCA Rolex - Company Panel</h1>
+                                    <p class="text-xs opacity-90">Mechanic Dashboard</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-6">
+                                <button onclick="navigateTo('company-messages')" class="text-white text-xl">
+                                    <i class="fas fa-envelope"></i>
+                                </button>
+                                <div class="text-white">
+                                    <p class="text-sm">Welcome, ${appState.currentUser.name}</p>
+                                </div>
+                                <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <div class="bg-white border-b sticky top-16 z-30">
+                        <div class="max-w-6xl mx-auto flex">
+                            <button onclick="navigateTo('company-dashboard')" class="flex-1 py-4 text-center font-semibold nav-active border-blue-600 border-b-2">
+                                <i class="fas fa-home mr-2"></i> Home
+                            </button>
+                            <button onclick="navigateTo('company-appointments')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-calendar mr-2"></i> Appointments
+                            </button>
+                            <button onclick="navigateTo('company-complaints')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-exclamation mr-2"></i> Complaints
+                            </button>
+                            <button onclick="navigateTo('company-feedback')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-star mr-2"></i> Feedback
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="max-w-6xl mx-auto py-8 px-4">
+                        <!-- Stats -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                            <div class="bg-white p-6 rounded-lg card-shadow">
+                                <i class="fas fa-hourglass-half text-3xl text-yellow-500 mb-2"></i>
+                                <h3 class="text-2xl font-bold">${pendingAppointments}</h3>
+                                <p class="text-gray-600">Pending Appointments</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg card-shadow">
+                                <i class="fas fa-check-circle text-3xl text-green-500 mb-2"></i>
+                                <h3 class="text-2xl font-bold">${completedJobs}</h3>
+                                <p class="text-gray-600">Completed Jobs</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg card-shadow">
+                                <i class="fas fa-exclamation-triangle text-3xl text-red-500 mb-2"></i>
+                                <h3 class="text-2xl font-bold">${pendingComplaints}</h3>
+                                <p class="text-gray-600">Active Complaints</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg card-shadow">
+                                <i class="fas fa-users text-3xl text-blue-500 mb-2"></i>
+                                <h3 class="text-2xl font-bold">${new Set(appState.appointments.map(a => a.clientId)).size}</h3>
+                                <p class="text-gray-600">Total Clients</p>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white p-8 rounded-lg card-shadow text-center">
+                                <i class="fas fa-calendar-check text-5xl blue-accent mb-4"></i>
+                                <h3 class="text-2xl font-bold mb-4">View Appointments</h3>
+                                <p class="text-gray-600 mb-4">Manage customer appointments and schedules</p>
+                                <button onclick="navigateTo('company-appointments')" class="btn-primary inline-block">
+                                    Go to Appointments
+                                </button>
+                            </div>
+                            <div class="bg-white p-8 rounded-lg card-shadow text-center">
+                                <i class="fas fa-comments text-5xl blue-accent mb-4"></i>
+                                <h3 class="text-2xl font-bold mb-4">Client Messages</h3>
+                                <p class="text-gray-600 mb-4">Chat with clients and respond to inquiries</p>
+                                <button onclick="navigateTo('company-messages')" class="btn-primary inline-block">
+                                    Go to Messages
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCompanyAppointments() {
+            const appointments = appState.appointments;
+
+            return `
+                <div class="min-h-screen bg-gray-50">
+                    <header class="gradient-header py-4 px-4 sticky top-0 z-40">
+                        <div class="max-w-6xl mx-auto flex justify-between items-center">
+                            <h1 class="text-2xl font-bold text-white">All Appointments</h1>
+                            <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button>
+                        </div>
+                    </header>
+
+                    <div class="bg-white border-b sticky top-16 z-30">
+                        <div class="max-w-6xl mx-auto flex">
+                            <button onclick="navigateTo('company-dashboard')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-home mr-2"></i> Home
+                            </button>
+                            <button onclick="navigateTo('company-appointments')" class="flex-1 py-4 text-center font-semibold nav-active border-blue-600 border-b-2">
+                                <i class="fas fa-calendar mr-2"></i> Appointments
+                            </button>
+                            <button onclick="navigateTo('company-complaints')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-exclamation mr-2"></i> Complaints
+                            </button>
+                            <button onclick="navigateTo('company-feedback')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-star mr-2"></i> Feedback
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="max-w-6xl mx-auto py-8 px-4">
+                        ${appointments.length === 0 ? `
+                            <div class="bg-white p-12 rounded-lg text-center card-shadow">
+                                <i class="fas fa-calendar text-5xl text-gray-300 mb-4"></i>
+                                <p class="text-xl text-gray-500">No appointments</p>
+                            </div>
+                        ` : `
+                            <div class="space-y-4">
+                                ${appointments.map(apt => `
+                                    <div class="bg-white p-6 rounded-lg card-shadow">
+                                        <div class="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h3 class="text-xl font-bold">${apt.serviceName}</h3>
+                                                <p class="text-gray-600">${apt.clientName} - ${apt.carBrand}</p>
+                                                <p class="text-sm text-gray-500">${apt.clientEmail}</p>
+                                            </div>
+                                            <span class="status-badge status-${apt.status}">${apt.status.toUpperCase()}</span>
+                                        </div>
+                                        <p class="text-gray-600 mb-4">${apt.description || 'No description'}</p>
+                                        <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+                                            <div>
+                                                <span class="text-gray-600">Appointment Date:</span>
+                                                <p class="font-semibold">${formatDate(apt.appointmentDate)}</p>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-600">Booked:</span>
+                                                <p class="font-semibold">${formatDate(apt.createdAt)}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-2 flex-wrap">
+                                            ${apt.status === 'pending' ? `
+                                                <button onclick="updateStatus('${apt.id}', 'approved')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm">
+                                                    <i class="fas fa-check mr-1"></i> Approve
+                                                </button>
+                                                <button onclick="updateStatus('${apt.id}', 'rejected')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm">
+                                                    <i class="fas fa-times mr-1"></i> Reject
+                                                </button>
+                                            ` : apt.status === 'approved' ? `
+                                                <button onclick="updateStatus('${apt.id}', 'completed')" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
+                                                    <i class="fas fa-check-double mr-1"></i> Mark Complete
+                                                </button>
+                                            ` : ''}
+                                            <button onclick="openChatToClient('${apt.clientId}', '${apt.clientName}')" class="btn-secondary text-sm">
+                                                <i class="fas fa-comment mr-1"></i> Chat
+                                            </button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCompanyComplaints() {
+            const complaints = appState.complaints;
+
+            return `
+                <div class="min-h-screen bg-gray-50">
+                    <header class="gradient-header py-4 px-4 sticky top-0 z-40">
+                        <div class="max-w-6xl mx-auto flex justify-between items-center">
+                            <h1 class="text-2xl font-bold text-white">Client Complaints</h1>
+                            <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button>
+                        </div>
+                    </header>
+
+                    <div class="bg-white border-b sticky top-16 z-30">
+                        <div class="max-w-6xl mx-auto flex">
+                            <button onclick="navigateTo('company-dashboard')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-home mr-2"></i> Home
+                            </button>
+                            <button onclick="navigateTo('company-appointments')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-calendar mr-2"></i> Appointments
+                            </button>
+                            <button onclick="navigateTo('company-complaints')" class="flex-1 py-4 text-center font-semibold nav-active border-blue-600 border-b-2">
+                                <i class="fas fa-exclamation mr-2"></i> Complaints
+                            </button>
+                            <button onclick="navigateTo('company-feedback')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-star mr-2"></i> Feedback
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="max-w-6xl mx-auto py-8 px-4">
+                        ${complaints.length === 0 ? `
+                            <div class="bg-white p-12 rounded-lg text-center card-shadow">
+                                <i class="fas fa-check-circle text-5xl text-gray-300 mb-4"></i>
+                                <p class="text-xl text-gray-500">No complaints</p>
+                            </div>
+                        ` : `
+                            <div class="space-y-4">
+                                ${complaints.map(complaint => `
+                                    <div class="bg-white p-6 rounded-lg card-shadow">
+                                        <div class="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h3 class="text-xl font-bold">${complaint.subject}</h3>
+                                                <p class="text-gray-600">${complaint.clientName}</p>
+                                                <p class="text-sm text-gray-500">${complaint.clientEmail}</p>
+                                                <p class="text-xs text-gray-400">${formatDateTime(complaint.createdAt)}</p>
+                                            </div>
+                                            <span class="status-badge status-${complaint.status}">${complaint.status.toUpperCase()}</span>
+                                        </div>
+                                        <p class="text-gray-700 mb-4">${complaint.description}</p>
+                                        
+                                        ${complaint.replies.length > 0 ? `
+                                            <div class="bg-gray-50 p-4 rounded mb-4 max-h-32 overflow-y-auto">
+                                                <div class="space-y-2">
+                                                    ${complaint.replies.map(reply => `
+                                                        <div class="chat-message-${reply.senderType} p-2 rounded">
+                                                            <p class="text-xs font-semibold">${reply.sender}</p>
+                                                            <p class="text-sm">${reply.message}</p>
+                                                            <p class="text-xs text-gray-500">${formatDateTime(reply.timestamp)}</p>
+                                                        </div>
+                                                    `).join('')}
+                                                </div>
+                                            </div>
+                                        ` : ''}
+
+                                        <div class="flex gap-2">
+                                            <input type="text" id="comp-reply-${complaint.id}" placeholder="Type your reply..." class="flex-1">
+                                            <button onclick="addComplaintReplyFromCompany('${complaint.id}')" class="btn-primary">Send</button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCompanyFeedback() {
+            const allFeedback = appState.feedback;
+            const avgRating = allFeedback.length > 0 ? (allFeedback.reduce((sum, f) => sum + f.rating, 0) / allFeedback.length).toFixed(1) : 0;
+
+            return `
+                <div class="min-h-screen bg-gray-50">
+                    <header class="gradient-header py-4 px-4 sticky top-0 z-40">
+                        <div class="max-w-6xl mx-auto flex justify-between items-center">
+                            <h1 class="text-2xl font-bold text-white">Customer Feedback</h1>
+                            <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button>
+                        </div>
+                    </header>
+
+                    <div class="bg-white border-b sticky top-16 z-30">
+                        <div class="max-w-6xl mx-auto flex">
+                            <button onclick="navigateTo('company-dashboard')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-home mr-2"></i> Home
+                            </button>
+                            <button onclick="navigateTo('company-appointments')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-calendar mr-2"></i> Appointments
+                            </button>
+                            <button onclick="navigateTo('company-complaints')" class="flex-1 py-4 text-center font-semibold hover:bg-gray-50">
+                                <i class="fas fa-exclamation mr-2"></i> Complaints
+                            </button>
+                            <button onclick="navigateTo('company-feedback')" class="flex-1 py-4 text-center font-semibold nav-active border-blue-600 border-b-2">
+                                <i class="fas fa-star mr-2"></i> Feedback
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="max-w-6xl mx-auto py-8 px-4">
+                        <!-- Average Rating -->
+                        ${allFeedback.length > 0 ? `
+                            <div class="bg-white p-8 rounded-lg card-shadow mb-8 text-center">
+                                <h2 class="text-3xl font-bold mb-2">Average Rating</h2>
+                                <div class="text-6xl text-yellow-400 mb-2">${'★'.repeat(Math.round(avgRating))}<span class="text-gray-300">${'★'.repeat(5-Math.round(avgRating))}</span></div>
+                                <p class="text-2xl font-bold">${avgRating} / 5 (${allFeedback.length} reviews)</p>
+                            </div>
+                        ` : ''}
+
+                        <!-- Feedback List -->
+                        ${allFeedback.length === 0 ? `
+                            <div class="bg-white p-12 rounded-lg text-center card-shadow">
+                                <i class="fas fa-star text-5xl text-gray-300 mb-4"></i>
+                                <p class="text-xl text-gray-500">No feedback yet</p>
+                            </div>
+                        ` : `
+                            <div class="space-y-4">
+                                ${allFeedback.map(fb => `
+                                    <div class="bg-white p-6 rounded-lg card-shadow">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div>
+                                                <h3 class="font-bold">${fb.clientName}</h3>
+                                                <p class="text-gray-600 text-sm">${fb.serviceName}</p>
+                                            </div>
+                                            <div class="text-yellow-400 text-xl">
+                                                ${'★'.repeat(fb.rating)}<span class="text-gray-300">${'★'.repeat(5-fb.rating)}</span>
+                                            </div>
+                                        </div>
+                                        <p class="text-gray-700">${fb.comment}</p>
+                                        <p class="text-xs text-gray-500 mt-2">${formatDate(fb.createdAt)}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCompanyMessages() {
+            const conversations = {};
+            appState.messages.forEach(msg => {
+                const otherPersonId = msg.senderId === appState.currentUser.id ? msg.recipientId : msg.senderId;
+                if (!conversations[otherPersonId]) {
+                    conversations[otherPersonId] = { name: msg.senderName, messages: [], lastMessage: msg };
+                }
+                conversations[otherPersonId].messages.push(msg);
+                if (new Date(msg.timestamp) > new Date(conversations[otherPersonId].lastMessage.timestamp)) {
+                    conversations[otherPersonId].lastMessage = msg;
+                }
+            });
+
+            const selectedConversation = localStorage.getItem('selectedConversationCompany');
+
+            if (selectedConversation) {
+                const messages = appState.messages.filter(msg =>
+                    (msg.senderId === appState.currentUser.id && msg.recipientId === selectedConversation) ||
+                    (msg.senderId === selectedConversation && msg.recipientId === appState.currentUser.id)
+                ).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+                return `
+                    <div class="min-h-screen bg-gray-50 flex flex-col">
+                        <header class="gradient-header py-4 px-4 sticky top-0 z-40">
+                            <div class="max-w-6xl mx-auto flex justify-between items-center">
+                                <button onclick="localStorage.removeItem('selectedConversationCompany'); navigateTo('company-messages')" class="text-white text-xl">
+                                    <i class="fas fa-arrow-left mr-2"></i> Back
+                                </button>
+                                <h1 class="text-2xl font-bold text-white" id="chatClientName">Client Chat</h1>
+                                <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button>
+                            </div>
+                        </header>
+
+                        <div class="flex-1 max-w-6xl w-full mx-auto px-4 py-8 overflow-y-auto">
+                            ${messages.length === 0 ? `
+                                <p class="text-gray-500 text-center">No messages yet</p>
+                            ` : `
+                                <div class="space-y-4">
+                                    ${messages.map(msg => `
+                                        <div class="chat-message-${msg.senderType} p-4 rounded-lg">
+                                            <p class="text-xs font-semibold mb-1">${msg.senderName}</p>
+                                            <p>${msg.message}</p>
+                                            <p class="text-xs text-gray-500 mt-1">${formatDateTime(msg.timestamp)}</p>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `}
+                        </div>
+
+                        <div class="bg-white border-t px-4 py-4 sticky bottom-0">
+                            <div class="max-w-6xl mx-auto flex gap-2">
+                                <input type="text" id="messageInputCompany" placeholder="Type your message..." class="flex-1">
+                                <button onclick="sendCompanyMessage('${selectedConversation}')" class="btn-primary">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const clients = new Set(appState.appointments.map(a => a.clientId));
+
+            return `
+                <div class="min-h-screen bg-gray-50">
+                    <header class="gradient-header py-4 px-4 sticky top-0 z-40">
+                        <div class="max-w-6xl mx-auto flex justify-between items-center">
+                            <h1 class="text-2xl font-bold text-white">Client Messages</h1>
+                            <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button>
+                        </div>
+                    </header>
+
+                    <div class="max-w-6xl mx-auto py-8 px-4">
+                        ${Object.keys(conversations).length === 0 ? `
+                            <div class="bg-white p-12 rounded-lg text-center card-shadow">
+                                <i class="fas fa-envelope text-5xl text-gray-300 mb-4"></i>
+                                <p class="text-xl text-gray-500">No conversations yet</p>
+                            </div>
+                        ` : `
+                            <div class="space-y-2">
+                                ${Object.entries(conversations).map(([clientId, data]) => `
+                                    <button onclick="localStorage.setItem('selectedConversationCompany', '${clientId}'); navigateTo('company-messages')" class="w-full bg-white p-4 rounded-lg text-left hover:bg-gray-50 card-shadow flex justify-between items-center">
+                                        <div class="flex-1">
+                                            <p class="font-semibold">${data.lastMessage.senderName}</p>
+                                            <p class="text-gray-600 text-sm">${data.lastMessage.message.substring(0, 50)}...</p>
+                                        </div>
+                                        <span class="text-xs text-gray-500">${formatDateTime(data.lastMessage.timestamp)}</span>
+                                    </button>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+            let content = '';
+
+            if (!appState.currentUser) {
+                content = renderLandingPage();
+            } else {
+                if (appState.userType === 'client') {
+                    switch (appState.currentPage) {
+                        case 'client-dashboard':
+                            content = renderClientDashboard();
+                            break;
+                        case 'client-appointments':
+                            content = renderClientAppointments();
+                            break;
+                        case 'client-complaints':
+                            content = renderClientComplaints();
+                            break;
+                        case 'client-feedback':
+                            content = renderClientFeedback();
+                            break;
+                        case 'client-messages':
+                            content = renderClientMessages();
+                            break;
+                        default:
+                            content = renderClientDashboard();
+                    }
+                } else {
+                    switch (appState.currentPage) {
+                        case 'company-dashboard':
+                            content = renderCompanyDashboard();
+                            break;
+                        case 'company-appointments':
+                            content = renderCompanyAppointments();
+                            break;
+                        case 'company-complaints':
+                            content = renderCompanyComplaints();
+                            break;
+                        case 'company-feedback':
+                            content = renderCompanyFeedback();
+                            break;
+                        case 'company-messages':
+                            content = renderCompanyMessages();
+                            break;
+                        default:
+                            content = renderCompanyDashboard();
+                    }
+                }
+            }
+
+            app.innerHTML = content;
+
+            // Attach event listeners
+            setTimeout(() => {
+                attachEventListeners();
+            }, 0);
+        }
+
+        function attachEventListeners() {
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.modal-backdrop')) {
+                    const modal = e.target.closest('.modal');
+                    if (modal) modal.classList.add('hidden');
+                }
+            });
+        }
+
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // ===== EVENT HANDLERS =====
+        function handleSignup() {
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const userType = document.querySelector('input[name="signupType"]:checked').value;
+
+            if (!name || !email || !password) {
+                showNotification('Please fill all fields', 'error');
+                return;
+            }
+
+            if (signup(email, password, name, userType)) {
+                closeModal('signupModal');
+            }
+        }
+
+        function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const userType = document.querySelector('input[name="loginType"]:checked').value;
+
+            if (!email || !password) {
+                showNotification('Please fill all fields', 'error');
+                return;
+            }
+
+            if (login(email, password, userType)) {
+                closeModal('loginModal');
+            }
+        }
+
+        function handleLogout() {
+            logout();
+        }
+
+        function handleBooking() {
+            const carBrand = document.getElementById('bookingBrand').value;
+            const serviceId = document.getElementById('bookingService').value;
+            const appointmentDate = document.getElementById('bookingDate').value;
+            const description = document.getElementById('bookingDescription').value;
+
+            if (!carBrand || !serviceId || !appointmentDate) {
+                showNotification('Please fill required fields', 'error');
+                return;
+            }
+
+            createAppointment({ carBrand, serviceId, appointmentDate, description });
+            closeModal('bookingModal');
+            navigateTo('client-appointments');
+        }
+
+        function handleComplaint() {
+            const subject = document.getElementById('complaintSubject').value;
+            const description = document.getElementById('complaintDescription').value;
+
+            if (!subject || !description) {
+                showNotification('Please fill all fields', 'error');
+                return;
+            }
+
+            createComplaint({ subject, description });
+            closeModal('complaintModal');
+            navigateTo('client-complaints');
+        }
+
+        function addReply(complaintId) {
+            const input = document.getElementById(`reply-${complaintId}`);
+            const message = input.value.trim();
+
+            if (!message) {
+                showNotification('Please enter a reply', 'error');
+                return;
+            }
+
+            addComplaintReply(complaintId, message);
+            input.value = '';
+            render();
+        }
+
+        function addComplaintReplyFromCompany(complaintId) {
+            const input = document.getElementById(`comp-reply-${complaintId}`);
+            const message = input.value.trim();
+
+            if (!message) {
+                showNotification('Please enter a reply', 'error');
+                return;
+            }
+
+            addComplaintReply(complaintId, message);
+            input.value = '';
+            render();
+        }
+
+        function showFeedbackModal(appointmentId) {
+            window.currentAppointmentId = appointmentId;
+            window.currentRating = 0;
+            showModal('feedbackModal');
+        }
+
+        function setRating(rating) {
+            window.currentRating = rating;
+            const stars = document.querySelectorAll('#ratingStars button');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.remove('text-gray-300');
+                    star.classList.add('text-yellow-400');
+                } else {
+                    star.classList.add('text-gray-300');
+                    star.classList.remove('text-yellow-400');
+                }
+            });
+        }
+
+        function handleFeedback() {
+            if (window.currentRating === 0) {
+                showNotification('Please select a rating', 'error');
+                return;
+            }
+
+            const comment = document.getElementById('feedbackComment').value.trim();
+            if (!comment) {
+                showNotification('Please enter a comment', 'error');
+                return;
+            }
+
+            submitFeedback(window.currentAppointmentId, window.currentRating, comment);
+            closeModal('feedbackModal');
+            render();
+        }
+
+        function updateStatus(appointmentId, status) {
+            updateAppointmentStatus(appointmentId, status);
+            render();
+        }
+
+        function showBookingModal(serviceId) {
+            window.currentServiceId = serviceId;
+            const select = document.getElementById('bookingService');
+            if (select) select.value = serviceId;
+            showModal('bookingModal');
+        }
+
+        function startChat(recipientId) {
+            localStorage.setItem('selectedConversation', recipientId);
+            navigateTo('client-messages');
+        }
+
+        function openChatToClient(clientId, clientName) {
+            localStorage.setItem('selectedConversationCompany', clientId);
+            navigateTo('company-messages');
+        }
+
+        function sendClientMessage(recipientId) {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message) {
+                showNotification('Please enter a message', 'error');
+                return;
+            }
+
+            sendMessage(recipientId, message);
+            input.value = '';
+            render();
+        }
+
+        function sendCompanyMessage(recipientId) {
+            const input = document.getElementById('messageInputCompany');
+            const message = input.value.trim();
+
+            if (!message) {
+                showNotification('Please enter a message', 'error');
+                return;
+            }
+
+            sendMessage(recipientId, message);
+            input.value = '';
+            render();
+        }
+
+        // ===== INITIALIZATION =====
+        loadAppState();
+        render();
+    </script>
+</body>
+</html>
